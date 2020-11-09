@@ -17,18 +17,6 @@ class Api::ProcessLogsController < ApplicationController
             log_array << [duration, error_code]
           end
         end
-        # params[:logFiles].each do |file_url|
-        #   uri = URI(file_url)
-        #   file_contents = Net::HTTP.get(uri)
-        #   file_contents.split.each_slice(3) do |request_id, timestamp, error_code|
-        #     duration = Time.at(timestamp.to_i).round(15.minutes)
-        #     log_array << [duration, error_code]
-        #   end
-        # end
-        p log_array.sort
-        # log_array.sort.group_by { |nested_array| nested_array }.each do |timestamp, values|
-        #   output[:response] << { timestamp: timestamp, logs: values.count }
-        # end
         log_array.group_by { |nested_array| nested_array[0] }.each do |timestamp, values|
           logs = []
           values.group_by { |nested_array| nested_array[1] }.each do |exception, exp_vals|
@@ -37,9 +25,6 @@ class Api::ProcessLogsController < ApplicationController
           output[:response] << { timestamp: timestamp, logs: logs }
         end
       end
-      p "====================="
-      p output
-      p "====================="
       render json: output
     rescue
       render json: { "status": "failure", "reason": "Something went wrong!" }
