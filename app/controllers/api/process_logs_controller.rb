@@ -17,7 +17,7 @@ class Api::ProcessLogsController < ApplicationController
             log_array << [duration, error_code]
           end
         end
-        log_array.group_by { |nested_array| nested_array[0] }.each do |timestamp, values|
+        log_array.sort.group_by(&:first).each do |timestamp, values|
           logs = []
           values.group_by { |nested_array| nested_array[1] }.each do |exception, exp_vals|
             logs << { exception: exception, count: exp_vals.count }
