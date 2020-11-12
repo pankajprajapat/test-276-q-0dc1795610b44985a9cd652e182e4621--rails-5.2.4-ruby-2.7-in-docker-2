@@ -8,15 +8,15 @@ class Api::ProcessLogsController < ApplicationController
       else
         log_array = []
         output = { response: []}.with_indifferent_access
-
         Parallel.map(params[:logFiles], in_threads: params[:parallelFileProcessingCount]) do |file_url|
           uri = URI(file_url)
           file_contents = Net::HTTP.get(uri)
           file_contents.split.each_slice(3) do |request_id, timestamp, error_code|
-            duration = Time.at(timestamp.to_i).round(15.minutes)
+            duration = Time.at(timestamp.to_i/1000).utc.round(15.minutes)
             log_array << [duration, error_code]
           end
         end
+
         log_array.sort.group_by(&:first).each do |timestamp, values|
           logs = []
           values.group_by { |nested_array| nested_array[1] }.each do |exception, exp_vals|
@@ -25,7 +25,7 @@ class Api::ProcessLogsController < ApplicationController
           output[:response] << { timestamp: timestamp, logs: logs }
         end
       end
-      render json: output
+      render json: output.as_json
     rescue
       render json: { "status": "failure", "reason": "Something went wrong!" }
     end
